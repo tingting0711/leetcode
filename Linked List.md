@@ -145,7 +145,7 @@ public:
 };
 ```
 
-> Approach1: O(N)
+> Approach2: O(N)
 
 ```c++
 class Solution {
@@ -190,18 +190,97 @@ public:
 
 
 
-## 题目
+## 138. Copy List with Random Pointer
 
-> Approach1: Iterative
+> Approach1: Iterative O(N)空间
 
 ```c++
-
+class Solution {
+public:
+    unordered_map<Node*, Node*>hash;
+    Node* copyRandomList(Node* head) {
+        if(head == NULL)return NULL;
+        auto dummy = new Node(-1);
+        for(auto p = head, curr = dummy; p; p = p -> next)
+        {
+            Node *q;
+            if(!hash.count(p))
+            {
+                q = new Node(p -> val);
+                hash[p] = q;
+            }
+            else q = hash[p];
+            curr = curr -> next = q;
+            if(p -> next)
+            {
+                if(!hash[p -> next])hash[p -> next] = new Node(p -> next -> val);
+                curr -> next =  hash[p -> next];
+            }
+            if(p -> random)
+            {
+                if(!hash[p -> random])hash[p -> random] = new Node(p -> random -> val);
+                curr -> random = hash[p -> random];
+            }   
+        }
+        return dummy -> next;
+    }
+};
 ```
 
-> Approach1: Recursive
+> Approach2: Recursive O(N)空间
 
 ```c++
+class Solution {
+public:
+    unordered_map<Node*, Node*>hash;
+    Node* copyRandomList(Node* head) {
+        if(head == NULL)return NULL;
+        
+        if(hash.count(head))return hash[head];
+        
+        Node *tmp = new Node(head -> val);
+        hash[head] = tmp;
+        tmp -> next = copyRandomList(head -> next);
+        tmp -> random = copyRandomList(head -> random);
+        return tmp;
+    }
+};
+```
 
+> Approach3: Iterative O(1)空间
+
+instead of a seaprate hash table to keep the old node --> new node mapping, we can tweak the original linked list and keep every cloned node next to its original node. This interleaving of old and new nodes allow us to keep old2new mapping without any extra space
+
+```c++
+class Solution {
+public:
+    Node* copyRandomList(Node* head) {
+        if(head == NULL)return NULL;
+        //tweak the old list to old/new node interleaving list;
+        for(auto p = head; p; p = p -> next)
+        {
+            auto q = new Node(p -> val);
+            q -> next = p -> next;
+            p = p -> next = q;
+        }
+        //add random
+        for(auto p = head; p; p = p -> next)
+        {
+            auto q = p -> next;
+            if(p -> random)q -> random = p -> random -> next;
+            p = q;
+        }
+        //delete old
+        Node *dummy = new Node(-1);
+        dummy -> next = head -> next;
+        for(auto p = head, q = dummy; p; p = p -> next, q = q -> next)
+        {
+            q -> next = p -> next;
+            p -> next = p -> next -> next;
+        }
+        return dummy -> next;
+    }
+};
 ```
 
 
