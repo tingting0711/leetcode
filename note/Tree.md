@@ -152,66 +152,206 @@ public:
 
 
 
-## 题目
+## 144. Binary Tree Preorder Traversal
 
 > Approach1: Iterative
 
 ```c++
-
+class Solution {
+public:
+    vector<int>res;
+    void dfs(TreeNode* root)
+    {
+        if(!root)return;
+        res.push_back(root->val);
+        dfs(root->left);
+        dfs(root->right);
+    }
+    vector<int> preorderTraversal(TreeNode* root) {
+        if(root == NULL)return res;
+        dfs(root);
+        return res;
+    }
+};
 ```
+
+> Approach2: Recursive
+
+```c++
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        vector<int>res;
+        if(root == NULL)return res;
+        stack<TreeNode*>stk;
+        stk.push(root);
+        while(!stk.empty())
+        {
+            TreeNode* t = stk.top();
+            stk.pop();
+            res.push_back(t -> val);
+            if(t -> right)stk.push(t -> right);
+            if(t -> left)stk.push(t -> left);
+        }
+        return res;
+    }
+};
+```
+
+> Approach3: BFS from top to buttom, from left to right
+
+> Approach 4: Morris traversal
+
+```c++
+//优化额外空间为O(1)
+```
+
+
+
+## 105. Construct Binary Tree from Preorder and Inorder Traversal
+
+- 重点题
+- 需保证节点不重复，否则无法唯一确定树
+- 姐妹题：106. Construct Binary Tree from Inorder and Postorder Traversal
 
 > Approach1: Recursive
 
 ```c++
-
+class Solution {
+public:
+    unordered_map<int, int>hash;
+    TreeNode* dfs(vector<int>& preorder, vector<int>& inorder, int pl, int pr, int il, int ir)
+    {
+        if(pl > pr)return NULL;
+        int val = preorder[pl];
+        int k = hash[val] - il;
+        TreeNode* root = new TreeNode(val);
+        root -> left = dfs(preorder, inorder, pl + 1, pl + k, il, il + k - 1);
+        root -> right = dfs(preorder, inorder, pl + k + 1, pr, il + k + 1, ir);
+        return root;
+    }
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        int n = inorder.size();
+        for(int i = 0; i < n; i ++)
+            hash[inorder[i]] = i;
+        return dfs(preorder, inorder, 0, n - 1, 0, n - 1);
+    }
+};
 ```
 
 
 
-## 题目
+## 235. Lowest Common Ancestor of a Binary Search Tree
+
+- 姐妹题：236. Lowest Common Ancestor of a Binary Tree
 
 > Approach1: Iterative
 
 ```c++
-
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        TreeNode* curr = root;
+        while(curr)
+        {
+            if(curr -> val < p -> val && curr -> val < q -> val)
+                curr = curr -> right;
+            else if(curr ->val > p -> val && curr -> val > q -> val)
+                curr = curr -> left;
+            else return curr;
+        }
+        return curr;
+    }
+};
 ```
 
-> Approach1: Recursive
+> Approach2: Recursive
 
 ```c++
-
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(p->val < root -> val && q->val < root -> val)
+            return lowestCommonAncestor(root->left, p, q);
+        else if(p->val > root -> val && q->val > root -> val)
+            return lowestCommonAncestor(root->right, p, q);
+        else return root;
+    }
+};
 ```
 
 
 
-## 题目
+## 236. Lowest Common Ancestor of a Binary Tree
 
 > Approach1: Iterative
 
 ```c++
+class Solution {
+public:
 
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        stack<TreeNode*>stk;
+        unordered_map<TreeNode*, TreeNode*>hash;
+        hash[root] = NULL;
+        stk.push(root);
+        while(!hash.count(p) || !hash.count(q))
+        {
+            auto t = stk.top();
+            stk.pop();
+            if(t -> left)
+            {
+                stk.push(t->left);
+                hash[t->left] = t;
+            }
+            if(t -> right)
+            {
+                 stk.push(t->right);
+                hash[t->right] = t;
+            }
+        }
+        unordered_set<TreeNode*> parent;
+        auto t = p;
+        while(t != NULL)
+        {
+            parent.insert(t);
+            t = hash[t];
+        }
+        t = q;
+        while(!parent.count(t))
+        {
+            t = hash[t];
+        }
+        return t;
+    }
+};
 ```
 
-> Approach1: Recursive
+> Approach2: Recursive
 
 ```c++
-
-```
-
-
-
-## 题目
-
-> Approach1: Iterative
-
-```c++
-
-```
-
-> Approach1: Recursive
-
-```c++
-
+class Solution {
+public:
+    TreeNode* ans;
+    bool dfs(TreeNode* root, TreeNode* p, TreeNode* q)
+    {
+        if(root == NULL)return NULL;
+        int left = dfs(root -> left, p, q) ? 1 : 0;
+        int right = dfs(root -> right, p, q) ? 1 : 0;
+        int mid = (root == p || root == q) ? 1 : 0;
+        
+        if(mid + left + right >= 2)
+        {
+            ans = root;
+        }
+        
+        return (mid + left + right >= 1);
+    }
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        dfs(root, p, q);
+        return ans;
+    }
+};
 ```
 
 
